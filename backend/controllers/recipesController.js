@@ -30,7 +30,16 @@ export const getRecipes = (req, res) => {
 
 export const getRecipeById = (req, res) => {
 	try {
-		// Votre code ici
+		const recipes = readRecipes(recipesPath)
+		const id = parseInt(req.params.id, 10)
+
+		const recipe = recipes.find((r) => r.id === id)
+
+		if (!recipe) {
+			return res.status(404).json({ error: "Recette introuvable" })
+		}
+
+		return res.json(recipe)
 	} catch (error) {
 		res.status(500).json({ error: error.message })
 	}
@@ -51,7 +60,15 @@ export const getRecipeById = (req, res) => {
 
 export const createRecipe = (req, res) => {
 	try {
-		// Votre code ici
+		const recipes = readRecipes(recipesPath)
+		const newRecipe = { id: Date.now(), ...req.body }
+
+		recipes.push(newRecipe)
+
+		
+		writeRecipes(recipes, recipesPath)
+
+		return res.status(201).json(newRecipe)
 	} catch (error) {
 		res.status(500).json({ error: error.message })
 	}
@@ -73,7 +90,20 @@ export const createRecipe = (req, res) => {
 
 export const updateRecipe = (req, res) => {
 	try {
-		// Votre code ici
+		const recipes = readRecipes(recipesPath)
+		const id = parseInt(req.params.id, 10)
+
+		const index = recipes.findIndex((r) => r.id === id)
+
+		if (index === -1) {
+			return res.status(404).json({ error: "Recette introuvable" })
+		}
+
+		recipes[index] = { ...recipes[index], ...req.body, id }
+
+		writeRecipes(recipes, recipesPath)
+
+		return res.json(recipes[index])
 	} catch (error) {
 		res.status(500).json({ error: error.message })
 	}
@@ -94,7 +124,20 @@ export const updateRecipe = (req, res) => {
 
 export const deleteRecipe = (req, res) => {
 	try {
-		// Votre code ici
+		const recipes = readRecipes(recipesPath)
+		const id = parseInt(req.params.id, 10)
+
+		const index = recipes.findIndex((r) => r.id === id)
+
+		if (index === -1) {
+			return res.status(404).json({ error: "Recette introuvable" })
+		}
+
+		const updatedRecipes = recipes.filter((r) => r.id !== id)
+
+		writeRecipes(updatedRecipes, recipesPath)
+
+		return res.status(200).json({ message: "Recette supprimée avec succès" })
 	} catch (error) {
 		res.status(500).json({ error: error.message })
 	}
@@ -114,7 +157,21 @@ export const deleteRecipe = (req, res) => {
 
 export const searchRecipes = (req, res) => {
 	try {
-		// Votre code ici (BONUS)
+		const recipes = readRecipes(recipesPath)
+		const search = req.query.search
+
+		// Si pas de terme -> renvoyer tout
+		if (!search) {
+			return res.json(recipes)
+		}
+
+		const term = search.toLowerCase()
+
+		const filtered = recipes.filter((r) =>
+			(r.name || "").toLowerCase().includes(term)
+		)
+
+		return res.json(filtered)
 	} catch (error) {
 		res.status(500).json({ error: error.message })
 	}
